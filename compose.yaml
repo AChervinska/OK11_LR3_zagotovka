@@ -1,0 +1,29 @@
+
+name: ok11-lr3
+
+services:
+  api:
+    build:
+      context: .
+      args:
+        TORCH_VARIANT: cpu
+    environment:
+      OK11_BACKEND: onnx-int8
+      OK11_ONNX_INT8_MODEL_DIR: models/onnx-int8
+      OK11_ONNX_MODEL_DIR: models/onnx-fp32
+    volumes:
+      - ./models:/app/models:ro
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
